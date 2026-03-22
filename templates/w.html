@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.0/dist/apexcharts.min.js"></script>
+        <!-- Plotly.js for interactive charts -->
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -349,6 +351,11 @@
                 <h3><i class="fas fa-chart-line"></i> Real-Time Power Monitoring</h3>
                 <div id="realtimeChart" style="height: 350px;"></div>
             </div>
+            <!-- Plotly Interactive Chart Example -->
+            <div class="chart-card full-width">
+                <h3><i class="fas fa-chart-bar"></i> Interactive Data Visualization (Plotly)</h3>
+                <div id="plotlyChart" style="height: 350px;"></div>
+            </div>
         </div>
 
         <!-- BOTTOM GRID -->
@@ -406,11 +413,17 @@ let voltageHistory = [];
 let currentHistory = [];
 let timeLabels = [];
 
+// Plotly chart data
+let plotlyChartInitialized = false;
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
     loadDashboardData();
     setInterval(loadDashboardData, 2000); // Update every 2 seconds
+
+    // Initialize Plotly chart
+    initializePlotlyChart();
 });
 
 function initializeCharts() {
@@ -530,6 +543,53 @@ function updateCharts(history) {
             xaxis: { categories: timeLabels }
         });
     }
+
+    // Update Plotly chart
+    updatePlotlyChart(timeLabels, voltageHistory, currentHistory);
+}
+
+function initializePlotlyChart() {
+    const trace1 = {
+        x: [],
+        y: [],
+        mode: 'lines+markers',
+        name: 'Voltage (V)',
+        line: { color: '#fbbf24' }
+    };
+    const trace2 = {
+        x: [],
+        y: [],
+        mode: 'lines+markers',
+        name: 'Current (mA)',
+        line: { color: '#3b82f6' }
+    };
+    const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#e2e8f0' },
+        xaxis: { title: 'Time' },
+        yaxis: { title: 'Value' },
+        legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2 },
+        margin: { t: 30, l: 40, r: 20, b: 50 }
+    };
+    Plotly.newPlot('plotlyChart', [trace1, trace2], layout, {responsive: true});
+    plotlyChartInitialized = true;
+}
+
+function updatePlotlyChart(labels, voltage, current) {
+    if (!plotlyChartInitialized) return;
+    Plotly.react('plotlyChart', [
+        { x: labels, y: voltage, mode: 'lines+markers', name: 'Voltage (V)', line: { color: '#fbbf24' } },
+        { x: labels, y: current, mode: 'lines+markers', name: 'Current (mA)', line: { color: '#3b82f6' } }
+    ], {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#e2e8f0' },
+        xaxis: { title: 'Time' },
+        yaxis: { title: 'Value' },
+        legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2 },
+        margin: { t: 30, l: 40, r: 20, b: 50 }
+    });
 }
 
 function updateAlerts() {

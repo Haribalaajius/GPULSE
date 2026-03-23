@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fault Prevention & AI Solutions</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        body { background: #181f2a; color: #e2e8f0; }
+        .card { background: #232b3b; border: none; }
+        .card-header { font-weight: 600; }
+        .ai-tip { color: #60a5fa; font-weight: 500; }
+        .metric-label { color: #9ca3af; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+        .metric-value { font-size: 28px; font-weight: 700; color: #60a5fa; }
+        .metric-unit { font-size: 14px; color: #9ca3af; }
+        .badge-fault { background: #ef4444; color: #fff; }
+        .badge-normal { background: #22c55e; color: #fff; }
+        .badge-warning { background: #f59e0b; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="container mt-4 mb-5">
+    <h2 class="mb-4">Fault Prevention & AI Remediation</h2>
+    <div id="prevention-metrics" class="row"></div>
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">AI-Based Solutions & Remediation</div>
+        <div class="card-body" id="ai-solutions">
+            <div class="ai-tip">Loading AI solutions...</div>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">Downloadable Resources</div>
+        <div class="card-body">
+            <a href="/api/export/csv" class="btn btn-outline-primary">Download System Data (CSV)</a>
+            <a href="/api/export/json" class="btn btn-outline-success ml-2">Download System Data (JSON)</a>
+        </div>
+    </div>
+</div>
+<script>
+async function fetchPreventionData() {
+    // Fetch analytics, alerts, and models data
+    const [analyticsRes, alertsRes] = await Promise.all([
+        fetch('/api/analytics'),
+        fetch('/api/alerts')
+    ]);
+    const analytics = await analyticsRes.json();
+    const alerts = await alertsRes.json();
+    return { analytics, alerts };
+}
+
+function renderMetrics(analytics, alerts) {
+    const metricsDiv = document.getElementById('prevention-metrics');
+    metricsDiv.innerHTML = '';
+    // Show voltage, current, frequency stats
+    const stats = analytics.stats;
+    const metrics = [
+        { label: 'Voltage', value: stats.voltage.avg.toFixed(1), unit: 'V', status: getStatus(stats.voltage.avg, 11, 28) },
+        { label: 'Current', value: stats.current.avg.toFixed(2), unit: 'A', status: getStatus(stats.current.avg, 0, 2) },
+        { label: 'Frequency', value: stats.frequency.avg.toFixed(2), unit: 'Hz', status: getStatus(stats.frequency.avg, 49, 51) }
+    ];
+    metrics.forEach(m => {
+        metricsDiv.innerHTML += `
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="metric-label">${m.label}</div>
+                    <div class="metric-value">${m.value} <span class="metric-unit">${m.unit}</span></div>
+                    <span class="badge ${m.status.badge}">${m.status.text}</span>
+                </div>
+            </div>
+        </div>`;
+    });
+    // Show recent alerts
+    if (alerts.alerts && alerts.alerts.length > 0) {
+        metricsDiv.innerHTML += `<div class="col-12 mb-4"><div class="card"><div class="card-header bg-danger text-white">Recent Fault Alerts</div><div class="card-body">`;
+        alerts.alerts.slice(-5).reverse().forEach(a => {
+            metricsDiv.innerHTML += `<div><span class="badge ${a.type === 'critical' ? 'badge-fault' : a.type === 'warning' ? 'badge-warning' : 'badge-normal'}">${a.title}</span> <span style="color:#9ca3af;">${a.description}</span> <span style="font-size:12px;color:#6b7280;">(${new Date(a.timestamp).toLocaleString()})</span></div>`;
+        });
+        metricsDiv.innerHTML += `</div></div></div>`;
+    }
+}
+function getStatus(val, min, max) {
+    if (val < min) return { text: 'Low', badge: 'badge-warning' };
+    if (val > max) return { text: 'High', badge: 'badge-warning' };
+    return { text: 'Normal', badge: 'badge-normal' };
+}
+function renderAISolutions(analytics, alerts) {
+    const aiDiv = document.getElementById('ai-solutions');
+    let tips = [];
+    // Fault-based tips
+    if (alerts.alerts && alerts.alerts.length > 0) {
+        alerts.alerts.slice(-3).reverse().forEach(a => {
+            if (a.type === 'critical') {
+                tips.push(`<b>${a.title}:</b> Immediate action required! ${a.description}. <span class='ai-tip'>Check wiring, reduce load, and inspect hardware.</span>`);
+            } else if (a.type === 'warning') {
+                tips.push(`<b>${a.title}:</b> Warning detected. <span class='ai-tip'>Schedule maintenance and monitor closely.</span>`);
+            }
+        });
+    }
+    // Analytics-based tips
+    const v = analytics.stats.voltage.avg;
+    const c = analytics.stats.current.avg;
+    const f = analytics.stats.frequency.avg;
+    if (v < 11) tips.push("<b>Undervoltage:</b> Supply is too low. <span class='ai-tip'>Check source and increase input voltage.</span>");
+    if (v > 28) tips.push("<b>Overvoltage:</b> Supply is too high. <span class='ai-tip'>Check for faulty regulators or disconnect unnecessary sources.</span>");
+    if (c > 2) tips.push("<b>Overcurrent:</b> Current is too high. <span class='ai-tip'>Reduce load and check for short circuits.</span>");
+    if (c < 0.05 && v > 0) tips.push("<b>Open Circuit:</b> Possible wiring issue. <span class='ai-tip'>Inspect all connections.</span>");
+    if (f < 49 || f > 51) tips.push("<b>Frequency Fault:</b> Frequency out of range. <span class='ai-tip'>Check inverter or signal generator stability.</span>");
+    if (tips.length === 0) tips.push("<span class='ai-tip'>System operating normally. No remediation needed.</span>");
+    aiDiv.innerHTML = tips.map(t => `<div class='mb-2'>${t}</div>`).join('');
+}
+// Main
+fetchPreventionData().then(({analytics, alerts}) => {
+    renderMetrics(analytics, alerts);
+    renderAISolutions(analytics, alerts);
+});
+</script>
+</body>
+</html>

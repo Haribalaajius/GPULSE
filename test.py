@@ -13,7 +13,7 @@ try:
 
     print("✅ Loaded: Model + Scaler + Label Encoder")
 
-    ESP_IP = "192.168.137.35"
+    ESP_IP = "192.168.137.112"
     STATUS_URL = f"http://{ESP_IP}/status"
     FAULT_URL  = f"http://{ESP_IP}/1"
     NORMAL_URL = f"http://{ESP_IP}/2"

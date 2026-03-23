@@ -1,3 +1,46 @@
+
+# ==========================================================
+# AI AGENTS SUGGESTIONS ENDPOINT
+# ==========================================================
+
+
+# =============================
+# MINIATURE GRID FAULT DIAGNOSTICS & AI PREDICTION
+# =============================
+def diagnose_fault(voltage, current, frequency):
+    faults = []
+    tips = []
+    # Voltage diagnostics (miniature grid: 11-28V)
+    if voltage < 11:
+        faults.append("UNDERVOLTAGE_FAULT")
+        tips.append("Check for weak supply or excessive load.")
+    elif voltage > 28:
+        faults.append("OVERVOLTAGE_FAULT")
+        tips.append("Disconnect unnecessary sources or check regulator.")
+    # Current diagnostics (miniature grid: <2A)
+    if current > 2:
+        faults.append("OVERCURRENT_FAULT")
+        tips.append("Reduce load or check for short circuit.")
+    elif current < 0.05 and voltage > 0:
+        faults.append("OPEN_CIRCUIT_FAULT")
+        tips.append("Check wiring and connections for open circuit.")
+    # Frequency diagnostics (if AC)
+    if frequency < 49 or frequency > 51:
+        faults.append("FREQUENCY_FAULT")
+        tips.append("Check inverter or signal generator stability.")
+    if not faults:
+        faults.append("NORMAL")
+        tips.append("System operating normally.")
+    return faults, tips
+
+# Stub for AI prediction (replace with real model if available)
+def ai_predict_fault(voltage, current, frequency):
+    # Example: simple rule-based AI stub
+    if voltage > 28 or current > 2:
+        return "FAULT_PREDICTED"
+    return "NO_FAULT_PREDICTED"
+
+
 from flask import Flask, render_template, jsonify, request, redirect, session, send_file
 from functools import wraps
 import json
@@ -105,6 +148,8 @@ def models_page():
 @login_required
 def alerts_page():
     return render_template("alerts.html")
+
+
 
 @app.route("/settings")
 @login_required
@@ -442,6 +487,11 @@ def get_users():
             {"username": "user", "is_admin": False}
         ]
     })
+
+
+# ==========================================================
+# DIAGNOSTICS API ENDPOINT (MOVED UP TO AVOID FLASK ASSERTION ERROR)
+# ==========================================================
 
 # ==========================================================
 # ERROR HANDLERS

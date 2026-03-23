@@ -1,3 +1,7 @@
+# ==========================================================
+# PDF EXPORT ENDPOINT (appended at end of file)
+# ==========================================================
+
 from flask import Flask, render_template, jsonify, request, redirect, session, send_file
 from functools import wraps
 import json
@@ -361,6 +365,7 @@ def get_hardware_history():
     except Exception as e:
         return jsonify({"status": "ERROR", "message": str(e)}), 500
 
+
 # ==========================================================
 # DATA EXPORT ROUTES
 # ==========================================================
@@ -374,31 +379,26 @@ def export_page():
 @login_required
 def export_csv():
     try:
-        # Create CSV from hardware history
-        output = StringIO()
-        writer = csv.writer(output)
-        writer.writerow(["Timestamp", "Voltage (V)", "Current (mA)", "Frequency (Hz)", "Status"])
-        
         with data_lock:
-            for reading in hardware_history:
-                writer.writerow([
-                    reading.get("timestamp", ""),
-                    reading.get("voltage", ""),
-                    reading.get("current", ""),
-                    reading.get("frequency", ""),
-                    reading.get("fault", "")
-                ])
-
-        output.seek(0)
-        mem = BytesIO()
-        mem.write(output.getvalue().encode('utf-8'))
+            si = StringIO()
+            writer = csv.DictWriter(si, fieldnames=["timestamp", "voltage", "current", "frequency", "fault"])
+            writer.writeheader()
+            for r in hardware_history:
+                writer.writerow({
+                    "timestamp": r["timestamp"],
+                    "voltage": r["voltage"],
+                    "current": r["current"],
+                    "frequency": r["frequency"],
+                    "fault": r["fault"]
+                })
+            output = si.getvalue().encode('utf-8')
+        mem = BytesIO(output)
         mem.seek(0)
-
         return send_file(
             mem,
             mimetype="text/csv",
             as_attachment=True,
-            download_name=f"smartgrid_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            download_name=f"hardware_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         )
     except Exception as e:
         return jsonify({"status": "ERROR", "message": str(e)}), 500
@@ -408,27 +408,19 @@ def export_csv():
 def export_json():
     try:
         with data_lock:
-            export_data = {
-                "channel": "SmartGrid Local Hardware",
-                "device": "ESP32 Microcontroller",
-                "export_time": datetime.now().isoformat(),
-                "total_readings": len(hardware_history),
-                "feeds": list(hardware_history)
-            }
-
-        filename = f"smartgrid_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        mem = BytesIO()
-        mem.write(json.dumps(export_data, indent=2).encode('utf-8'))
+            history = list(hardware_history)
+        output = json.dumps({"data": history, "count": len(history)}, indent=2)
+        mem = BytesIO(output.encode('utf-8'))
         mem.seek(0)
-
         return send_file(
             mem,
             mimetype="application/json",
             as_attachment=True,
-            download_name=filename
+            download_name=f"hardware_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
     except Exception as e:
         return jsonify({"status": "ERROR", "message": str(e)}), 500
+
 
 # ==========================================================
 # ADMIN PANEL ROUTES

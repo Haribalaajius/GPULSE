@@ -2,42 +2,212 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Fault Prevention & AI Solutions</title>
+    <title>SmartGrid Fault Prevention & AI Remediation</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background: #181f2a; color: #e2e8f0; }
-        .card { background: #232b3b; border: none; }
-        .card-header { font-weight: 600; }
+        .sidebar { background: linear-gradient(135deg, #1a202c, #2d3748); width: 250px; position: fixed; top: 0; left: 0; height: 100vh; padding: 30px 15px 0 15px; border-right: 1px solid #374151; z-index: 100; }
+        .sidebar .brand { color: #60a5fa; font-size: 1.7rem; font-weight: 700; text-align: center; margin-bottom: 30px; }
+        .sidebar .nav-menu { list-style: none; padding: 0; }
+        .sidebar .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 8px; color: #cbd5e0; text-decoration: none; margin-bottom: 8px; transition: all 0.2s; }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+        .sidebar .nav-link i { font-size: 18px; }
+        .main-content { margin-left: 250px; padding: 35px 30px 30px 30px; min-height: 100vh; }
+        .top-bar { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 18px 30px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #374151; }
+        .top-bar h2 { font-size: 2rem; font-weight: 700; color: #60a5fa; margin: 0; }
+        .metric-card { background: linear-gradient(135deg, #232b3b, #1a2233); border: none; border-radius: 16px; box-shadow: 0 2px 12px #0002; }
+        .metric-label { color: #9ca3af; font-size: 15px; font-weight: 600; text-transform: uppercase; }
+        .metric-value { font-size: 2.2rem; font-weight: 700; color: #60a5fa; }
+        .metric-unit { font-size: 1rem; color: #9ca3af; }
+        .badge-fault { background: #ef4444; color: #fff; font-size: 0.95rem; }
+        .badge-normal { background: #22c55e; color: #fff; font-size: 0.95rem; }
+        .badge-warning { background: #f59e0b; color: #fff; font-size: 0.95rem; }
+        .card-header { font-weight: 600; font-size: 1.1rem; }
+        .ai-solutions-list { display: flex; flex-wrap: wrap; gap: 18px; }
+        .ai-solution-card { background: linear-gradient(135deg, #232b3b 80%, #1a2233); border-radius: 14px; box-shadow: 0 2px 8px #0002; padding: 18px 20px; min-width: 260px; flex: 1 1 260px; display: flex; align-items: flex-start; gap: 14px; border-left: 6px solid #60a5fa; transition: box-shadow 0.2s; }
+        .ai-solution-card.critical { border-left-color: #ef4444; }
+        .ai-solution-card.warning { border-left-color: #f59e0b; }
+        .ai-solution-card.optim { border-left-color: #22c55e; }
+        .ai-solution-icon { font-size: 1.7rem; margin-right: 10px; margin-top: 2px; }
+        .ai-solution-title { font-weight: 600; color: #fbbf24; font-size: 1.1rem; margin-bottom: 2px; }
+        .ai-solution-desc { color: #e2e8f0; font-size: 1rem; }
         .ai-tip { color: #60a5fa; font-weight: 500; }
-        .metric-label { color: #9ca3af; font-size: 13px; font-weight: 600; text-transform: uppercase; }
-        .metric-value { font-size: 28px; font-weight: 700; color: #60a5fa; }
-        .metric-unit { font-size: 14px; color: #9ca3af; }
-        .badge-fault { background: #ef4444; color: #fff; }
-        .badge-normal { background: #22c55e; color: #fff; }
-        .badge-warning { background: #f59e0b; color: #fff; }
+        .alert-row { border-bottom: 1px solid #374151; padding: 10px 0; display: flex; align-items: center; gap: 12px; }
+        .alert-row:last-child { border-bottom: none; }
+        .alert-badge { min-width: 110px; text-align: center; font-size: 1rem; }
+        .download-btns .btn { margin-right: 10px; }
+        .fa { margin-right: 7px; }
+        .card-header { letter-spacing: 0.5px; }
+        .card { transition: box-shadow 0.2s; }
+        .card:hover { box-shadow: 0 4px 18px #0003; }
+        /* --- Historical Trends Section --- */
+        .trends-row { display: flex; gap: 18px; margin-bottom: 0; }
+        .trend-card { background: linear-gradient(135deg, #232b3b 80%, #1a2233); border-radius: 14px; box-shadow: 0 2px 12px #0004; padding: 18px 18px 8px 18px; flex: 1 1 0; min-width: 220px; margin-bottom: 0; }
+        .trend-title { font-size: 1.15rem; font-weight: 700; color: #60a5fa; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .trend-chart { background: #181f2a; border-radius: 10px; padding: 8px; }
+        .trend-fault-card { background: linear-gradient(135deg, #232b3b 80%, #1a2233); border-radius: 14px; box-shadow: 0 2px 12px #0004; padding: 18px 18px 8px 18px; margin-top: 10px; }
+        @media (max-width: 900px) {
+            .sidebar { position: static; width: 100%; height: auto; border-right: none; padding: 10px 0; }
+            .main-content { margin-left: 0; padding: 20px 5vw; }
+            .ai-solutions-list { flex-direction: column; gap: 12px; }
+            .trends-row { flex-direction: column; gap: 12px; }
+        }
     </style>
 </head>
 <body>
-<div class="container mt-4 mb-5">
-    <h2 class="mb-4">Fault Prevention & AI Remediation</h2>
-    <div id="prevention-metrics" class="row"></div>
+<div class="sidebar">
+    <div class="brand"><i class="fas fa-bolt"></i> SmartGrid</div>
+    <ul class="nav-menu">
+        <li><a href="/" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="/analytics" class="nav-link"><i class="fas fa-bar-chart"></i> Analytics</a></li>
+        <li><a href="/models" class="nav-link"><i class="fas fa-brain"></i> ML Models</a></li>
+        <li><a href="/alerts" class="nav-link"><i class="fas fa-bell"></i> Alerts</a></li>
+        <li><a href="/settings" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
+        <li><hr style="border-color: #4a5568; margin: 15px 0;"></li>
+        <li><a href="/admin" class="nav-link"><i class="fas fa-lock"></i> Admin</a></li>
+        <li><a href="/prevention" class="nav-link active"><i class="fas fa-shield-alt"></i> Fault Prevention</a></li>
+        <li><a href="/export" class="nav-link"><i class="fas fa-download"></i> Export</a></li>
+        <li><a href="/logout" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+</div>
+<div class="main-content">
+    <div class="top-bar">
+        <h2><i class="fas fa-shield-alt"></i> Fault Prevention & AI Remediation</h2>
+        <span style="color:#22c55e;font-weight:600;"><i class="fas fa-circle" style="font-size:12px;"></i> System Online</span>
+    </div>
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card metric-card h-100 text-center py-3">
+                <div class="metric-label"><i class="fas fa-bolt"></i> Voltage</div>
+                <div class="metric-value" id="voltageVal">--</div>
+                <div class="metric-unit">V</div>
+                <span id="voltageStatus" class="badge">--</span>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card metric-card h-100 text-center py-3">
+                <div class="metric-label"><i class="fas fa-plug"></i> Current</div>
+                <div class="metric-value" id="currentVal">--</div>
+                <div class="metric-unit">A</div>
+                <span id="currentStatus" class="badge">--</span>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card metric-card h-100 text-center py-3">
+                <div class="metric-label"><i class="fas fa-wave-square"></i> Frequency</div>
+                <div class="metric-value" id="frequencyVal">--</div>
+                <div class="metric-unit">Hz</div>
+                <span id="frequencyStatus" class="badge">--</span>
+            </div>
+        </div>
+    </div>
     <div class="card mb-4">
-        <div class="card-header bg-warning text-dark">AI-Based Solutions & Remediation</div>
+        <div class="card-header bg-danger text-white"><i class="fas fa-exclamation-triangle"></i> Recent Fault Alerts</div>
+        <div class="card-body" id="alertsSection">
+            <div class="text-muted">Loading alerts...</div>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header bg-info text-dark"><i class="fas fa-chart-area"></i> Historical Trends</div>
+        <div class="card-body" style="background: #181f2a; border-radius: 12px;">
+            <div class="trends-row">
+                <div class="trend-card">
+                    <div class="trend-title"><i class="fas fa-bolt"></i> Voltage</div>
+                    <div class="trend-chart"><canvas id="voltageChart" height="160"></canvas></div>
+                </div>
+                <div class="trend-card">
+                    <div class="trend-title"><i class="fas fa-plug"></i> Current</div>
+                    <div class="trend-chart"><canvas id="currentChart" height="160"></canvas></div>
+                </div>
+                <div class="trend-card">
+                    <div class="trend-title"><i class="fas fa-wave-square"></i> Frequency</div>
+                    <div class="trend-chart"><canvas id="frequencyChart" height="160"></canvas></div>
+                </div>
+            </div>
+            <div class="trend-fault-card mt-3">
+                <div class="trend-title"><i class="fas fa-exclamation-triangle"></i> Faults</div>
+                <div class="trend-chart"><canvas id="faultChart" height="100"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark"><i class="fas fa-robot"></i> AI-Based Solutions & Remediation</div>
         <div class="card-body" id="ai-solutions">
             <div class="ai-tip">Loading AI solutions...</div>
         </div>
     </div>
     <div class="card mb-4">
-        <div class="card-header bg-secondary text-white">Downloadable Resources</div>
-        <div class="card-body">
-            <a href="/api/export/csv" class="btn btn-outline-primary">Download System Data (CSV)</a>
-            <a href="/api/export/json" class="btn btn-outline-success ml-2">Download System Data (JSON)</a>
+        <div class="card-header bg-secondary text-white"><i class="fas fa-download"></i> Downloadable Resources</div>
+        <div class="card-body download-btns">
+            <a href="/api/export/csv" class="btn btn-outline-primary"><i class="fas fa-file-csv"></i> Download CSV</a>
+            <a href="/api/export/json" class="btn btn-outline-success"><i class="fas fa-file-code"></i> Download JSON</a>
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// --- Historical Data Visualization ---
+let voltageChart, currentChart, frequencyChart, faultChart;
+function setupCharts() {
+    const voltageCtx = document.getElementById('voltageChart').getContext('2d');
+    const currentCtx = document.getElementById('currentChart').getContext('2d');
+    const frequencyCtx = document.getElementById('frequencyChart').getContext('2d');
+    const faultCtx = document.getElementById('faultChart').getContext('2d');
+    voltageChart = new Chart(voltageCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Voltage (V)', data: [], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.15)', borderWidth: 3, pointRadius: 3, fill: true }] },
+        options: { responsive: true, plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { x: { display: false, grid: { color: '#374151' } }, y: { display: true, grid: { color: '#374151' }, ticks: { color: '#fbbf24', font: { weight: 'bold' } } } } }
+    });
+    currentChart = new Chart(currentCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Current (A)', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.15)', borderWidth: 3, pointRadius: 3, fill: true }] },
+        options: { responsive: true, plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { x: { display: false, grid: { color: '#374151' } }, y: { display: true, grid: { color: '#374151' }, ticks: { color: '#3b82f6', font: { weight: 'bold' } } } } }
+    });
+    frequencyChart = new Chart(frequencyCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Frequency (Hz)', data: [], borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.15)', borderWidth: 3, pointRadius: 3, fill: true }] },
+        options: { responsive: true, plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { x: { display: false, grid: { color: '#374151' } }, y: { display: true, grid: { color: '#374151' }, ticks: { color: '#8b5cf6', font: { weight: 'bold' } } } } }
+    });
+    faultChart = new Chart(faultCtx, {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Faults', data: [], backgroundColor: '#ef4444', borderRadius: 8, borderWidth: 2 }] },
+        options: { responsive: true, plugins: { legend: { display: false }, tooltip: { enabled: true } }, scales: { x: { display: true, grid: { color: '#374151' }, ticks: { color: '#ef4444', font: { weight: 'bold' } } }, y: { display: true, grid: { color: '#374151' }, ticks: { color: '#ef4444', font: { weight: 'bold' } } } } }
+    });
+}
+
+async function fetchHistory() {
+    const res = await fetch('/api/hardware/history?limit=50');
+    const data = await res.json();
+    return data.data || [];
+}
+
+async function updateCharts() {
+    const history = await fetchHistory();
+    const labels = history.map(h => new Date(h.timestamp).toLocaleTimeString());
+    voltageChart.data.labels = labels;
+    voltageChart.data.datasets[0].data = history.map(h => h.voltage);
+    voltageChart.update();
+    currentChart.data.labels = labels;
+    currentChart.data.datasets[0].data = history.map(h => h.current);
+    currentChart.update();
+    frequencyChart.data.labels = labels;
+    frequencyChart.data.datasets[0].data = history.map(h => h.frequency);
+    frequencyChart.update();
+    // Faults
+    const faultCounts = {};
+    history.forEach(h => { faultCounts[h.fault] = (faultCounts[h.fault] || 0) + 1; });
+    faultChart.data.labels = Object.keys(faultCounts);
+    faultChart.data.datasets[0].data = Object.values(faultCounts);
+    faultChart.update();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupCharts();
+    updateCharts();
+    setInterval(updateCharts, 3000);
+});
 async function fetchPreventionData() {
-    // Fetch analytics, alerts, and models data
     const [analyticsRes, alertsRes] = await Promise.all([
         fetch('/api/analytics'),
         fetch('/api/alerts')
@@ -47,52 +217,58 @@ async function fetchPreventionData() {
     return { analytics, alerts };
 }
 
-function renderMetrics(analytics, alerts) {
-    const metricsDiv = document.getElementById('prevention-metrics');
-    metricsDiv.innerHTML = '';
-    // Show voltage, current, frequency stats
+function setMetric(id, value, status) {
+    document.getElementById(id + 'Val').textContent = value;
+    const badge = document.getElementById(id + 'Status');
+    badge.textContent = status.text;
+    badge.className = 'badge ' + status.badge;
+}
+
+function renderMetrics(analytics) {
     const stats = analytics.stats;
-    const metrics = [
-        { label: 'Voltage', value: stats.voltage.avg.toFixed(1), unit: 'V', status: getStatus(stats.voltage.avg, 11, 28) },
-        { label: 'Current', value: stats.current.avg.toFixed(2), unit: 'A', status: getStatus(stats.current.avg, 0, 2) },
-        { label: 'Frequency', value: stats.frequency.avg.toFixed(2), unit: 'Hz', status: getStatus(stats.frequency.avg, 49, 51) }
-    ];
-    metrics.forEach(m => {
-        metricsDiv.innerHTML += `
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="metric-label">${m.label}</div>
-                    <div class="metric-value">${m.value} <span class="metric-unit">${m.unit}</span></div>
-                    <span class="badge ${m.status.badge}">${m.status.text}</span>
-                </div>
-            </div>
-        </div>`;
-    });
-    // Show recent alerts
+    setMetric('voltage', stats.voltage.avg.toFixed(1), getStatus(stats.voltage.avg, 11, 28));
+    setMetric('current', stats.current.avg.toFixed(2), getStatus(stats.current.avg, 0, 2));
+    setMetric('frequency', stats.frequency.avg.toFixed(2), getStatus(stats.frequency.avg, 49, 51));
+}
+
+function renderAlerts(alerts) {
+    const section = document.getElementById('alertsSection');
+    section.innerHTML = '';
     if (alerts.alerts && alerts.alerts.length > 0) {
-        metricsDiv.innerHTML += `<div class="col-12 mb-4"><div class="card"><div class="card-header bg-danger text-white">Recent Fault Alerts</div><div class="card-body">`;
         alerts.alerts.slice(-5).reverse().forEach(a => {
-            metricsDiv.innerHTML += `<div><span class="badge ${a.type === 'critical' ? 'badge-fault' : a.type === 'warning' ? 'badge-warning' : 'badge-normal'}">${a.title}</span> <span style="color:#9ca3af;">${a.description}</span> <span style="font-size:12px;color:#6b7280;">(${new Date(a.timestamp).toLocaleString()})</span></div>`;
+            section.innerHTML += `<div class="alert-row"><span class="badge ${a.type === 'critical' ? 'badge-fault' : a.type === 'warning' ? 'badge-warning' : 'badge-normal'}">${a.title}</span> <span style="color:#9ca3af;">${a.description}</span> <span style="font-size:12px;color:#6b7280;">(${new Date(a.timestamp).toLocaleString()})</span></div>`;
         });
-        metricsDiv.innerHTML += `</div></div></div>`;
+    } else {
+        section.innerHTML = '<div class="text-success">No recent faults detected.</div>';
     }
 }
+
 function getStatus(val, min, max) {
     if (val < min) return { text: 'Low', badge: 'badge-warning' };
     if (val > max) return { text: 'High', badge: 'badge-warning' };
     return { text: 'Normal', badge: 'badge-normal' };
 }
+
 function renderAISolutions(analytics, alerts) {
     const aiDiv = document.getElementById('ai-solutions');
     let tips = [];
-    // Fault-based tips
+    // Fault-based tips (alerts)
     if (alerts.alerts && alerts.alerts.length > 0) {
         alerts.alerts.slice(-3).reverse().forEach(a => {
             if (a.type === 'critical') {
-                tips.push(`<b>${a.title}:</b> Immediate action required! ${a.description}. <span class='ai-tip'>Check wiring, reduce load, and inspect hardware.</span>`);
+                tips.push({
+                    icon: 'fa-triangle-exclamation',
+                    title: a.title,
+                    desc: `Immediate action required! ${a.description}. Check wiring, reduce load, and inspect hardware.`,
+                    type: 'critical'
+                });
             } else if (a.type === 'warning') {
-                tips.push(`<b>${a.title}:</b> Warning detected. <span class='ai-tip'>Schedule maintenance and monitor closely.</span>`);
+                tips.push({
+                    icon: 'fa-exclamation-circle',
+                    title: a.title,
+                    desc: `Warning detected. Schedule maintenance and monitor closely.`,
+                    type: 'warning'
+                });
             }
         });
     }
@@ -100,17 +276,149 @@ function renderAISolutions(analytics, alerts) {
     const v = analytics.stats.voltage.avg;
     const c = analytics.stats.current.avg;
     const f = analytics.stats.frequency.avg;
-    if (v < 11) tips.push("<b>Undervoltage:</b> Supply is too low. <span class='ai-tip'>Check source and increase input voltage.</span>");
-    if (v > 28) tips.push("<b>Overvoltage:</b> Supply is too high. <span class='ai-tip'>Check for faulty regulators or disconnect unnecessary sources.</span>");
-    if (c > 2) tips.push("<b>Overcurrent:</b> Current is too high. <span class='ai-tip'>Reduce load and check for short circuits.</span>");
-    if (c < 0.05 && v > 0) tips.push("<b>Open Circuit:</b> Possible wiring issue. <span class='ai-tip'>Inspect all connections.</span>");
-    if (f < 49 || f > 51) tips.push("<b>Frequency Fault:</b> Frequency out of range. <span class='ai-tip'>Check inverter or signal generator stability.</span>");
-    if (tips.length === 0) tips.push("<span class='ai-tip'>System operating normally. No remediation needed.</span>");
-    aiDiv.innerHTML = tips.map(t => `<div class='mb-2'>${t}</div>`).join('');
+    if (v < 11) tips.push({
+        icon: 'fa-bolt',
+        title: 'Undervoltage',
+        desc: 'Supply is too low. Check source and increase input voltage. Consider predictive maintenance for transformers.',
+        type: 'warning'
+    });
+    if (v > 28) tips.push({
+        icon: 'fa-bolt',
+        title: 'Overvoltage',
+        desc: 'Supply is too high. Check for faulty regulators or disconnect unnecessary sources. AI recommends reviewing recent load changes.',
+        type: 'critical'
+    });
+    if (c > 2) tips.push({
+        icon: 'fa-plug',
+        title: 'Overcurrent',
+        desc: 'Current is too high. Reduce load and check for short circuits. AI suggests inspecting for abnormal device consumption.',
+        type: 'critical'
+    });
+    if (c < 0.05 && v > 0) tips.push({
+        icon: 'fa-unlink',
+        title: 'Open Circuit',
+        desc: 'Possible wiring issue. Inspect all connections. AI recommends running a continuity test.',
+        type: 'warning'
+    });
+    if (f < 49 || f > 51) tips.push({
+        icon: 'fa-wave-square',
+        title: 'Frequency Fault',
+        desc: 'Frequency out of range. Check inverter or signal generator stability. AI suggests reviewing generator logs.',
+        type: 'warning'
+    });
+    // Additional AI-based solutions and proactive recommendations
+    if (v >= 11 && v <= 28 && c >= 0.05 && c <= 2 && f >= 49 && f <= 51) {
+        tips.push({
+            icon: 'fa-lightbulb',
+            title: 'Energy Optimization',
+            desc: 'System is stable. AI recommends scheduling routine maintenance and optimizing load distribution for efficiency.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-microchip',
+            title: 'Hardware Health',
+            desc: 'No faults detected. AI suggests running periodic diagnostics on relays and sensors.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-shield-alt',
+            title: 'Surge Protection',
+            desc: 'Install surge protectors and ensure grounding is intact to prevent damage from voltage spikes.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-calendar-check',
+            title: 'Scheduled Inspections',
+            desc: 'AI recommends monthly inspections of wiring, connectors, and circuit breakers to catch wear and tear early.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-sync-alt',
+            title: 'Firmware Updates',
+            desc: 'Keep all microcontrollers and smart devices updated with the latest firmware for improved reliability and security.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-balance-scale',
+            title: 'Load Balancing',
+            desc: 'Distribute loads evenly across phases and avoid overloading any single line. AI can help analyze usage patterns.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-thermometer-half',
+            title: 'Environmental Checks',
+            desc: 'Ensure the operating environment is free from excessive dust, moisture, and heat to prolong equipment life.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-user-shield',
+            title: 'Safety Precautions',
+            desc: 'Always de-energize circuits before maintenance. Use insulated tools and wear protective gear.',
+            type: 'optim'
+        });
+        tips.push({
+            icon: 'fa-search',
+            title: 'Proactive Fault Detection',
+            desc: 'Enable continuous monitoring and AI-based anomaly detection to catch issues before they escalate.',
+            type: 'optim'
+        });
+    }
+    if (tips.length === 0) tips.push({
+        icon: 'fa-check-circle',
+        title: 'System Normal',
+        desc: 'System operating normally. No remediation needed.',
+        type: 'optim'
+    });
+    // Always show at least 4 proactive recommendations even if faults exist
+    const proactive = [
+        {
+            icon: 'fa-shield-alt',
+            title: 'Surge Protection',
+            desc: 'Install surge protectors and ensure grounding is intact to prevent damage from voltage spikes.',
+            type: 'optim'
+        },
+        {
+            icon: 'fa-calendar-check',
+            title: 'Scheduled Inspections',
+            desc: 'AI recommends monthly inspections of wiring, connectors, and circuit breakers to catch wear and tear early.',
+            type: 'optim'
+        },
+        {
+            icon: 'fa-sync-alt',
+            title: 'Firmware Updates',
+            desc: 'Keep all microcontrollers and smart devices updated with the latest firmware for improved reliability and security.',
+            type: 'optim'
+        },
+        {
+            icon: 'fa-user-shield',
+            title: 'Safety Precautions',
+            desc: 'Always de-energize circuits before maintenance. Use insulated tools and wear protective gear.',
+            type: 'optim'
+        }
+    ];
+    // If not already present, add proactive recommendations (max 2 if faults, all if normal)
+    proactive.forEach(rec => {
+        if (!tips.some(t => t.title === rec.title)) {
+            if (tips.length < 8 || (tips.filter(t => t.type !== 'optim').length === 0)) {
+                tips.push(rec);
+            }
+        }
+    });
+    aiDiv.innerHTML = `<div class='ai-solutions-list'>${tips.map(t => `
+        <div class='ai-solution-card ${t.type}'>
+            <span class='ai-solution-icon'><i class='fas ${t.icon}'></i></span>
+            <div>
+                <div class='ai-solution-title'>${t.title}</div>
+                <div class='ai-solution-desc'>${t.desc}</div>
+            </div>
+        </div>
+    `).join('')}</div>`;
 }
+
 // Main
 fetchPreventionData().then(({analytics, alerts}) => {
-    renderMetrics(analytics, alerts);
+    renderMetrics(analytics);
+    renderAlerts(alerts);
     renderAISolutions(analytics, alerts);
 });
 </script>

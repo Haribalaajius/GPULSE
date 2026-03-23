@@ -479,12 +479,69 @@ async function loadDashboardData() {
         // Fetch history
         const historyRes = await fetch('/api/hardware/history?limit=20');
         const history = await historyRes.json();
+        let readings = history.data || [];
+
+        // If no real readings, show sample/mock readings
+        let useMock = false;
+        if (!readings || readings.length === 0) {
+            useMock = true;
+            readings = [
+                { voltage: 225, current: 6, frequency: 50, fault: 'NORMAL', timestamp: new Date().toISOString() },
+                { voltage: 230, current: 7, frequency: 50, fault: 'NORMAL', timestamp: new Date().toISOString() },
+                { voltage: 240, current: 8, frequency: 50, fault: 'HIGH_VOLTAGE_FAULT', timestamp: new Date().toISOString() },
+                { voltage: 215, current: 5, frequency: 49, fault: 'OPEN_VOLTAGE_FAULT', timestamp: new Date().toISOString() },
+                { voltage: 220, current: 6, frequency: 50, fault: 'NORMAL', timestamp: new Date().toISOString() }
+            ];
+        }
 
         // Update metrics
         updateMetrics(live);
-        updateCharts(history);
+        updateCharts(readings);
         updateAlerts();
-        updateSystemHealth(history);
+        updateSystemHealth(readings);
+
+        // Show sample readings in Recent Readings
+        const recentDiv = document.getElementById('recentReadings');
+        if (recentDiv) {
+            recentDiv.innerHTML = '';
+            readings.slice(-5).reverse().forEach(r => {
+                const color = r.fault === 'NORMAL' ? '#22c55e' : '#ef4444';
+                const faultText = r.fault === 'NORMAL' ? 'Normal' : r.fault.replace(/_/g, ' ');
+                recentDiv.innerHTML += `<div style="margin-bottom:8px; color:${color}; font-size:15px;">
+                    <b>V:</b> ${r.voltage} V, <b>I:</b> ${r.current} mA, <b>F:</b> ${r.frequency} Hz
+                    <span style="margin-left:10px; font-weight:600;">${faultText}</span>
+                    <span style="color:#9ca3af; font-size:12px; margin-left:10px;">${new Date(r.timestamp).toLocaleTimeString()}</span>
+                </div>`;
+            });
+            if (useMock) {
+                recentDiv.innerHTML += '<div style="color:#fbbf24; font-size:13px; margin-top:10px;">Showing sample readings (no live data)</div>';
+            }
+        }
+
+        // Show AI-based fault prevention tips if using mock data
+        if (useMock) {
+            const healthDiv = document.getElementById('systemHealth');
+            if (healthDiv && !document.getElementById('aiTips')) {
+                const tips = document.createElement('div');
+                tips.id = 'aiTips';
+                tips.style.marginTop = '18px';
+                tips.style.background = 'rgba(96,165,250,0.08)';
+                tips.style.padding = '12px';
+                tips.style.borderRadius = '8px';
+                tips.style.fontSize = '13px';
+                tips.innerHTML = '<b>AI Fault Prevention Tips:</b><ul style="margin:8px 0 0 18px; padding:0;">'
+                    + '<li>Keep voltage between 220-240V to avoid faults.</li>'
+                    + '<li>Monitor for sudden current spikes (possible short circuit).</li>'
+                    + '<li>Check wiring for open/loose connections.</li>'
+                    + '<li>Use surge protectors to prevent high voltage damage.</li>'
+                    + '<li>Enable real-time monitoring for early fault detection.</li>'
+                + '</ul>';
+                healthDiv.appendChild(tips);
+            }
+        } else {
+            const aiTips = document.getElementById('aiTips');
+            if (aiTips) aiTips.remove();
+        }
     } catch (error) {
         console.error('Error loading dashboard data:', error);
     }
@@ -525,14 +582,21 @@ function updateMetrics(data) {
 }
 
 function updateCharts(history) {
-    if (history.length === 0) return;
-
-    voltageHistory = history.map(h => h.voltage);
-    currentHistory = history.map(h => h.current);
-    timeLabels = history.map(h => {
-        const dt = new Date(h.timestamp);
-        return dt.toLocaleTimeString();
-    });
+    // If no real data, show sample/mock data
+    let useMock = false;
+    if (history.length === 0) {
+        useMock = true;
+        voltageHistory = [220, 221, 222, 223, 224, 225, 224, 223, 222, 221, 220, 219, 218, 220, 221, 222, 223, 224, 225, 224];
+        currentHistory = [5, 6, 7, 8, 7, 6, 5, 4, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 4];
+        timeLabels = Array.from({length: 20}, (_, i) => `T${i+1}`);
+    } else {
+        voltageHistory = history.map(h => h.voltage);
+        currentHistory = history.map(h => h.current);
+        timeLabels = history.map(h => {
+            const dt = new Date(h.timestamp);
+            return dt.toLocaleTimeString();
+        });
+    }
 
     if (chartInstance) {
         chartInstance.updateSeries([
@@ -546,6 +610,25 @@ function updateCharts(history) {
 
     // Update Plotly chart
     updatePlotlyChart(timeLabels, voltageHistory, currentHistory);
+
+    // Optionally, display a message if using mock data
+    const chartCard = document.querySelector('.chart-card.full-width');
+    if (chartCard) {
+        let mockMsg = chartCard.querySelector('.mock-msg');
+        if (useMock) {
+            if (!mockMsg) {
+                mockMsg = document.createElement('div');
+                mockMsg.className = 'mock-msg';
+                mockMsg.style.color = '#fbbf24';
+                mockMsg.style.fontSize = '14px';
+                mockMsg.style.marginTop = '10px';
+                mockMsg.textContent = 'Showing sample readings (no live data)';
+                chartCard.appendChild(mockMsg);
+            }
+        } else if (mockMsg) {
+            mockMsg.remove();
+        }
+    }
 }
 
 function initializePlotlyChart() {

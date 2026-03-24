@@ -3,6 +3,7 @@
 # ==========================================================
 
 from flask import Flask, render_template, jsonify, request, redirect, session, send_file
+from flask_cors import CORS
 from functools import wraps
 import json
 import requests
@@ -54,8 +55,10 @@ def ai_predict_fault(voltage, current, frequency):
 
 
 
+
 app = Flask(__name__)
 app.secret_key = "my_super_secure_key_12345"  # Change this to a secure key
+CORS(app)
 
 
 # ==========================================================
